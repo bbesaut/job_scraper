@@ -13,7 +13,7 @@ class Scraper(commands.Cog):
     def cog_unload(self):
         self.scraping_loop_task.cancel()
 
-    @tasks.loop(seconds=10) 
+    @tasks.loop(minutes=10) 
     async def scraping_loop_task(self):
         ENVIRONNEMENT = os.getenv("ENVIRONNEMENT", "DEV")
 
