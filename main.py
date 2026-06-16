@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import os
 
-TOKEN = os.getenv("TOKEN")
+DISCORD_TOKEN = os.getenv("DISCORD_TOKEN")
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -17,4 +17,4 @@ async def on_ready():
 async def hihi(ctx):
     await ctx.send("hihi")
 
-bot.run(TOKEN)
+bot.run(DISCORD_TOKEN)
