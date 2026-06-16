@@ -15,6 +15,6 @@ async def on_ready():
 
 @bot.command()
 async def hihi(ctx):
-    await ctx.send("hihi")
+    await ctx.send("heee heee")
 
 bot.run(DISCORD_TOKEN)
