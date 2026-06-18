@@ -4,6 +4,7 @@ import os
 import json 
 
 from scrapers.jobs_ch import scrape_jobs_ch
+from scrapers.jobup_ch import scrape_jobup_ch
 
 DEV_CHANNEL_ID = 1516481386998009876  
 PROD_CHANNEL_ID = 1516421352448594051  
@@ -16,7 +17,6 @@ class Scraper(commands.Cog):
         self.save_path = "/data/sent_jobs.json" if self.env == "PROD" else "sent_jobs.json"
         
         self.sent_jobs = self.load_memory()
-        
         self.scraping_loop_task.start() 
 
     def load_memory(self):
@@ -31,7 +31,6 @@ class Scraper(commands.Cog):
     def save_memory(self):
         if self.env != "PROD":
             return 
-            
         try:
             with open(self.save_path, "w", encoding="utf-8") as f:
                 json.dump(list(self.sent_jobs), f)
@@ -44,26 +43,35 @@ class Scraper(commands.Cog):
         target_channel = self.bot.get_channel(target_channel_id)
         
         if target_channel is not None:
-            jobs = scrape_jobs_ch() 
-            new_jobs_count = 0  
+            jobs_ch_list = scrape_jobs_ch() 
+            jobs_up_list = await scrape_jobup_ch()  # ✅ await
+
+            all_jobs = jobs_ch_list + jobs_up_list
+            new_jobs_count = 0
             
-            for job in jobs:
+            for job in all_jobs:
                 job_url = job['url']
                 
                 if job_url not in self.sent_jobs:
-                    
                     texte_alerte = f"@here  🚨  **NOUVELLE OFFRE ({job['source']})**"
                     
                     embed = discord.Embed(
                         title=job['title'],
                         url=job_url, 
-                        color=discord.Color.green() # Tu peux mettre red(), green(), gold(), etc.
+                        color=discord.Color.green()
                     )
                     
                     embed.add_field(name="🏢  Entreprise", value=job['company'], inline=True)
                     embed.add_field(name="📍  Lieu", value=job['location'], inline=True)
-                    embed.add_field(name="ℹ️  Contrat", value=f"{job['workload']} | {job['contract']}", inline=False)
-                    embed.add_field(name="🔗  Lien", value=f"{job['url']}", inline=False)
+                    
+                    # ✅ jobup.ch a salary + workload, jobs.ch a workload + contract
+                    if job['source'] == "jobup.ch":
+                        embed.add_field(name="ℹ️  Taux", value=job.get('workload', 'Unknown'), inline=False)
+                        embed.add_field(name="💰  Salaire", value=job.get('salary', 'Unknown'), inline=False)
+                    else:
+                        embed.add_field(name="ℹ️  Contrat", value=f"{job.get('workload', 'Unknown')} | {job.get('contract', 'Unknown')}", inline=False)
+                    
+                    embed.add_field(name="🔗  Lien", value=job_url, inline=False)
                                         
                     await target_channel.send(content=texte_alerte, embed=embed)
                     

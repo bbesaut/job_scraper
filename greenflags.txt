@@ -28,3 +28,4 @@ git
 github
 scrum
 fullstack
+softwareentwickler
