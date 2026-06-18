@@ -32,7 +32,7 @@ def scrape_jobs_ch():
         job_cards = tree.xpath('//a[@data-cy="job-link"]')
         
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        print(f"[{current_time}] - [{len(job_cards)}] FOUND on main page. Checking greenflags...")
+        print(f"[{current_time}] - [{len(job_cards)}] FOUND on jobs.ch. Checking greenflags...")
         
         for card in job_cards:
             title_list = card.xpath('./@title')
