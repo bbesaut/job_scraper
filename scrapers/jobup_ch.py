@@ -24,7 +24,19 @@ async def scrape_jobup_ch():
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=True)
+            browser = await p.chromium.launch(
+                headless=True,
+                args=[
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--disable-gpu",
+                    "--single-process",
+                    "--no-zygote",
+                    "--disable-extensions",
+                    "--disable-images",
+                    "--blink-settings=imagesEnabled=false",
+                ]
+            )
 
             # 1. Charger la liste des offres
             page = await browser.new_page()
