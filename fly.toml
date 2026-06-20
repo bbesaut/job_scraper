@@ -1,0 +1,18 @@
+# fly.toml app configuration file generated for job-scraper-57eklg on 2026-06-16T15:39:34Z
+#
+# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
+#
+
+app = 'job-scraper-57eklg'
+primary_region = 'iad'
+
+[build]
+
+[[vm]]
+  cpu_kind = 'shared'
+  cpus = 1
+  memory_mb = 256
+
+[mounts]
+  source = "data"
+  destination = "/data"
