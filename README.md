@@ -1,6 +1,6 @@
 # Job Scraper Discord Bot
 
-Discord bot that scrapes swiss jobs websites every 15 minutes for new developer job postings and posts them to a Discord channel.
+Discord bot that scrapes swiss jobs websites in the Basel are, every 15 minutes for new developer job postings and posts them to a Discord channel.
 
 ## Stack
 
@@ -40,15 +40,15 @@ Edit either file to tune the filtering — no code changes needed.
    pip install -r requirements.txt
    ```
 
-2. Create a `.env` file at the project root (already gitignored):
+2. Copy `.env.example` to `.env` (already gitignored) and fill in the values:
 
-   ```
-   DISCORD_TOKEN=your-bot-token-here
-   ENVIRONNEMENT=DEV
+   ```bash
+   cp .env.example .env
    ```
 
-   - `ENVIRONNEMENT=DEV` restricts the bot to the dev channel (ID hardcoded as `SALON_DEV_ID` in `main.py`).
-   - `ENVIRONNEMENT=PROD` restricts it to the prod channel.
+   - `DISCORD_TOKEN` — your bot token from the Discord Developer Portal.
+   - `ENVIRONNEMENT=DEV` restricts the bot to the dev channel (`TEST_CHANNEL_ID`); `ENVIRONNEMENT=PROD` restricts it to any other channel.
+   - `TEST_CHANNEL_ID` — the Discord channel ID used for the dev environment.
 
 3. Edit `greenflags.txt` and `greyflags.txt` if you want to change how job postings are filtered — see [Filtering](#filtering-greenflagstxt-and-greyflagstxt) above.
 
