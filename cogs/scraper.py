@@ -10,6 +10,7 @@ from zoneinfo import ZoneInfo
 from scrapers.jobs_ch import scrape_jobs_ch
 from scrapers.jobup_ch import scrape_jobup_ch
 from scrapers.jobscout24_ch import scrape_jobscout24_ch
+from scrapers.jobbasel_ch import scrape_jobbasel_ch
 
 DEV_CHANNEL_ID = 1516481386998009876
 DEV_LOGS_CHANNEL_ID = 1517559887754694838
@@ -88,8 +89,9 @@ class Scraper(commands.Cog):
             jobs_ch_results = await asyncio.to_thread(scrape_jobs_ch)
             jobup_ch_results = await scrape_jobup_ch()
             jobscout24_ch_results = await asyncio.to_thread(scrape_jobscout24_ch)
+            jobbasel_ch_results = await asyncio.to_thread(scrape_jobbasel_ch)
 
-            all_jobs = (jobs_ch_results or []) + (jobup_ch_results or []) + (jobscout24_ch_results or [])
+            all_jobs = (jobs_ch_results or []) + (jobup_ch_results or []) + (jobscout24_ch_results or []) + (jobbasel_ch_results or [])
 
             new_jobs_count = 0
             for job in all_jobs:
@@ -112,6 +114,7 @@ class Scraper(commands.Cog):
             del jobs_ch_results
             del jobup_ch_results
             del jobscout24_ch_results
+            del jobbasel_ch_results
             del all_jobs
             gc.collect()
 
