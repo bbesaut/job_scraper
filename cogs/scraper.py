@@ -5,6 +5,8 @@ import json
 import asyncio
 import logging
 import gc
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from scrapers.jobs_ch import scrape_jobs_ch
 from scrapers.jobup_ch import scrape_jobup_ch
 from scrapers.jobscout24_ch import scrape_jobscout24_ch
@@ -13,6 +15,13 @@ DEV_CHANNEL_ID = 1516481386998009876
 DEV_LOGS_CHANNEL_ID = 1517559887754694838
 PROD_CHANNEL_ID = 1516421352448594051
 PROD_LOGS_CHANNEL_ID = 1517559558938034266
+
+PARIS_TZ = ZoneInfo("Europe/Paris")
+
+class ParisFormatter(logging.Formatter):
+    def formatTime(self, record, datefmt=None):
+        dt = datetime.fromtimestamp(record.created, tz=PARIS_TZ)
+        return dt.strftime(datefmt or "%Y-%m-%d %H:%M:%S")
 
 class DiscordLogHandler(logging.Handler):
     def __init__(self, channel_getter):
@@ -36,7 +45,7 @@ class Scraper(commands.Cog):
         self.logger = logging.getLogger("scraper")
         self.logger.setLevel(logging.DEBUG)
         self.discord_handler = DiscordLogHandler(self.get_logs_channel)
-        self.discord_handler.setFormatter(logging.Formatter("%(asctime)s - %(message)s", "%H:%M:%S"))
+        self.discord_handler.setFormatter(ParisFormatter("%(asctime)s - %(message)s", "%H:%M:%S"))
         self.logger.addHandler(self.discord_handler)
 
         import builtins
