@@ -1,9 +1,8 @@
 import httpx
 import asyncio
-import re
-import os
 from datetime import datetime
 from lxml import html as lxml_html
+from scrapers.relevance import load_greenflags, load_greyflags, build_pattern, is_relevant
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -30,16 +29,6 @@ SEARCH_PARAMS_BASE = {
     "query": "entwickler",
     "regionIds": [27, 31, 32, 40, 47],
 }
-
-
-def load_greenflags():
-    filepath = os.path.join(os.path.dirname(__file__), '..', 'greenflags.txt')
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return [line.strip() for line in f if line.strip()]
-    except FileNotFoundError:
-        print("WARNING: greenflags.txt not found! Using default filters.")
-        return ["IT", "java", "c#", "software", "web"]
 
 
 def strip_html(raw_html: str) -> str:
@@ -82,8 +71,8 @@ async def fetch_all_search_pages(client: httpx.AsyncClient, params: dict) -> lis
 async def scrape_jobup_ch():
     job_offers = []
     keywords = load_greenflags()
-    escaped_kws = [re.escape(kw) for kw in keywords]
-    regex_pattern = re.compile(r'(?i)(?<![a-z])(' + '|'.join(escaped_kws) + r')(?![a-z])')
+    regex_pattern = build_pattern(keywords)
+    greyflag_pattern = build_pattern(load_greyflags())
 
     today = datetime.now().strftime("%Y-%m-%d")
     search_params = {
@@ -115,7 +104,8 @@ async def scrape_jobup_ch():
                 continue
 
             raw_details = strip_html(detail.get("template_text", ""))
-            if not raw_details or not regex_pattern.search(raw_details):
+            title = doc.get("title", "Unknown Title")
+            if not is_relevant(regex_pattern, title, raw_details, greyflag_pattern):
                 continue
 
             job_id = doc.get("id", "")
@@ -128,7 +118,7 @@ async def scrape_jobup_ch():
             contract = ", ".join(EMPLOYMENT_TYPES.get(str(tid), f"#{tid}") for tid in type_ids) if type_ids else "Unknown"
 
             job_offers.append({
-                "title": doc.get("title", "Unknown Title"),
+                "title": title,
                 "company": doc.get("company", {}).get("name", "Unknown Company"),
                 "location": doc.get("place", "Unknown"),
                 "workload": workload,

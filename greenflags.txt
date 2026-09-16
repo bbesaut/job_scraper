@@ -29,3 +29,5 @@ github
 scrum
 fullstack
 softwareentwickler
+cloud
+devops

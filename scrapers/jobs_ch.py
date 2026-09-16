@@ -2,26 +2,17 @@ import requests
 from lxml import html
 from datetime import datetime
 import time
-import os
-import re
-
-def load_greenflags():
-    filepath = os.path.join(os.path.dirname(__file__), '..', 'greenflags.txt')
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return [line.strip() for line in f if line.strip()]
-    except FileNotFoundError:
-        return ["IT", "java", "c#", "software", "web"]
+from scrapers.relevance import load_greenflags, load_greyflags, build_pattern, is_relevant
 
 def scrape_jobs_ch():
     # URL ORIGINALE REMISE EN PLACE
-    target_url = "https://www.jobs.ch/fr/offres-emplois/?publication-date=0.5&region=8&region=12&region=14&term=d%C3%A9veloppeur" 
+    target_url = "https://www.jobs.ch/fr/offres-emplois/?publication-date=0.5&region=8&region=12&region=14&term=d%C3%A9veloppeur"
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"}
     job_offers = []
-    
+
     keywords = load_greenflags()
-    escaped_kws = [re.escape(kw) for kw in keywords]
-    regex_pattern = re.compile(r'(?i)(?<![a-z])(' + '|'.join(escaped_kws) + r')(?![a-z])')
+    regex_pattern = build_pattern(keywords)
+    greyflag_pattern = build_pattern(load_greyflags())
     
     try:
         response = requests.get(target_url, headers=headers)
@@ -58,7 +49,7 @@ def scrape_jobs_ch():
                 except Exception as e:
                     print(f"Error fetching details for {title}: {e}")
 
-            if not raw_details or not regex_pattern.search(raw_details):
+            if not is_relevant(regex_pattern, title, raw_details, greyflag_pattern):
                 continue
 
             company_list = card.xpath('.//p[contains(@class, "fw_bold")]/text()')
