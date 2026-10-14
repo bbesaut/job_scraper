@@ -11,7 +11,6 @@ from scrapers.jobs_ch import scrape_jobs_ch
 from scrapers.jobup_ch import scrape_jobup_ch
 from scrapers.jobscout24_ch import scrape_jobscout24_ch
 from scrapers.jobbasel_ch import scrape_jobbasel_ch
-from scrapers.swissdevjobs_ch import scrape_swissdevjobs_ch
 from scrapers.swissas_teamtailor import scrape_swissas_teamtailor
 from scrapers.jetaviation import scrape_jetaviation
 
@@ -25,7 +24,7 @@ PARIS_TZ = ZoneInfo("Europe/Paris")
 # Every `source` value the scrapers emit, so a source with nothing sent still shows up as 0.
 SOURCES = (
     "jobs.ch", "jobup.ch", "jobscout24.ch", "jobbasel.ch",
-    "swissdevjobs.ch", "swissas.teamtailor.com", "jobs.jetaviation.com",
+    "swissas.teamtailor.com", "jobs.jetaviation.com",
 )
 
 class ParisFormatter(logging.Formatter):
@@ -109,14 +108,12 @@ class Scraper(commands.Cog):
             jobup_ch_results = await scrape_jobup_ch()
             jobscout24_ch_results = await asyncio.to_thread(scrape_jobscout24_ch)
             jobbasel_ch_results = await asyncio.to_thread(scrape_jobbasel_ch)
-            swissdevjobs_results = await asyncio.to_thread(scrape_swissdevjobs_ch)
             swissas_results = await asyncio.to_thread(scrape_swissas_teamtailor)
             jetaviation_results = await asyncio.to_thread(scrape_jetaviation)
 
             all_jobs = (
                 (jobs_ch_results or []) + (jobup_ch_results or []) + (jobscout24_ch_results or [])
-                + (jobbasel_ch_results or []) + (swissdevjobs_results or [])
-                + (swissas_results or []) + (jetaviation_results or [])
+                + (jobbasel_ch_results or []) + (swissas_results or []) + (jetaviation_results or [])
             )
 
             new_jobs_count = 0
@@ -152,7 +149,6 @@ class Scraper(commands.Cog):
             del jobup_ch_results
             del jobscout24_ch_results
             del jobbasel_ch_results
-            del swissdevjobs_results
             del swissas_results
             del jetaviation_results
             del all_jobs
