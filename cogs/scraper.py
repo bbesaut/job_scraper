@@ -12,6 +12,7 @@ from scrapers.jobup_ch import scrape_jobup_ch
 from scrapers.jobscout24_ch import scrape_jobscout24_ch
 from scrapers.jobbasel_ch import scrape_jobbasel_ch
 from scrapers.swissas_teamtailor import scrape_swissas_teamtailor
+from scrapers.jetaviation import scrape_jetaviation
 
 DEV_CHANNEL_ID = 1516481386998009876
 DEV_LOGS_CHANNEL_ID = 1517559887754694838
@@ -92,10 +93,11 @@ class Scraper(commands.Cog):
             jobscout24_ch_results = await asyncio.to_thread(scrape_jobscout24_ch)
             jobbasel_ch_results = await asyncio.to_thread(scrape_jobbasel_ch)
             swissas_results = await asyncio.to_thread(scrape_swissas_teamtailor)
+            jetaviation_results = await asyncio.to_thread(scrape_jetaviation)
 
             all_jobs = (
                 (jobs_ch_results or []) + (jobup_ch_results or []) + (jobscout24_ch_results or [])
-                + (jobbasel_ch_results or []) + (swissas_results or [])
+                + (jobbasel_ch_results or []) + (swissas_results or []) + (jetaviation_results or [])
             )
 
             new_jobs_count = 0
@@ -121,6 +123,7 @@ class Scraper(commands.Cog):
             del jobscout24_ch_results
             del jobbasel_ch_results
             del swissas_results
+            del jetaviation_results
             del all_jobs
             gc.collect()
 

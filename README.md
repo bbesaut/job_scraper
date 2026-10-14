@@ -14,7 +14,7 @@ Discord bot that scrapes swiss jobs websites in the Basel are, every 15 minutes 
 - `main.py` starts the bot and loads every cog in `cogs/`.
 - `cogs/scraper.py` runs a loop every 15 minutes: scrapes all three sites, filters postings for relevance (see below), and posts new ones as embeds to the target Discord channel. Already-seen job URLs are remembered (in `/data/sent_jobs.json` in prod) to avoid duplicate posts.
 - `cogs/clear.py` adds a `!clear [n]` command to bulk-delete messages in a channel.
-- `scrapers/jobs_ch.py`, `scrapers/jobup_ch.py`, `scrapers/jobscout24_ch.py`, `scrapers/jobbasel_ch.py` and `scrapers/swissas_teamtailor.py` contain the actual scraping logic for each site. The Swiss AviationSoftware one reads TeamTailor's public RSS feed (`/jobs.rss`), which already includes each job's full description.
+- `scrapers/jobs_ch.py`, `scrapers/jobup_ch.py`, `scrapers/jobscout24_ch.py`, `scrapers/jobbasel_ch.py`, `scrapers/swissas_teamtailor.py` and `scrapers/jetaviation.py` contain the actual scraping logic for each site. The Swiss AviationSoftware one reads TeamTailor's public RSS feed (`/jobs.rss`), which already includes each job's full description.
 - `scrapers/relevance.py` decides whether a scraped posting is actually relevant, based on `greenflags.txt` and `greyflags.txt` (see below).
 - The bot switches between a **DEV** channel and a **PROD** channel based on the `ENVIRONNEMENT` env var (see `main.py`), so it only reacts to commands in the matching channel.
 
