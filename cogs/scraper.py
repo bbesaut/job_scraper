@@ -49,6 +49,7 @@ class Scraper(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.env = os.getenv("ENVIRONNEMENT", "DEV")
+        self.dry_run = self.resolve_dry_run(self.env)
         self.save_path = "/data/sent_jobs.json" if self.env == "PROD" else "sent_jobs.json"
         self.sent_jobs = self.load_memory()
 
@@ -67,6 +68,14 @@ class Scraper(commands.Cog):
 
         self.scraping_loop_task.start()
 
+    @staticmethod
+    def resolve_dry_run(env):
+        """DRY_RUN=true/false wins; unset means on in DEV, off in PROD."""
+        raw = os.getenv("DRY_RUN")
+        if raw is None or not raw.strip():
+            return env != "PROD"
+        return raw.strip().lower() in ("1", "true", "yes", "on")
+
     def get_logs_channel(self):
         channel_id = PROD_LOGS_CHANNEL_ID if self.env == "PROD" else DEV_LOGS_CHANNEL_ID
         return self.bot.get_channel(channel_id)
@@ -81,7 +90,8 @@ class Scraper(commands.Cog):
         return set()
 
     def save_memory(self):
-        if self.env != "PROD": return
+        # A dry run never sent anything, so persisting its jobs as "sent" would hide them forever.
+        if self.env != "PROD" or self.dry_run: return
         try:
             with open(self.save_path, "w", encoding="utf-8") as f:
                 json.dump(list(self.sent_jobs), f)
@@ -110,6 +120,7 @@ class Scraper(commands.Cog):
             )
 
             new_jobs_count = 0
+            sent_by_source = {source: 0 for source in SOURCES}
             for job in all_jobs:
                 if job['url'] not in self.sent_jobs:
                     embed = discord.Embed(title=job['title'], color=discord.Color.green())
@@ -119,10 +130,19 @@ class Scraper(commands.Cog):
                     embed.add_field(name="🔗 Lien", value=job['url'], inline=True)
 
 
-                    await target_channel.send(content=f"@here 🚨 **NOUVELLE OFFRE ({job['source']})**", embed=embed)
-            sent_by_source = {source: 0 for source in SOURCES}
+                    # Dry run: skip only the job notification. The per-source summary below still goes to logs.
+                    if not self.dry_run:
+                        await target_channel.send(content=f"@here 🚨 **NOUVELLE OFFRE ({job['source']})**", embed=embed)
                     self.sent_jobs.add(job['url'])
                     new_jobs_count += 1
+                    sent_by_source[job['source']] = sent_by_source.get(job['source'], 0) + 1
+
+            # One print (= one Discord log message) for all sources, same format as the FOUND lines.
+            current_time = datetime.now(PARIS_TZ).strftime("%Y-%m-%d %H:%M:%S")
+            print("\n".join(
+                f"[{current_time}] - [{count}] SENT from {source}."
+                for source, count in sent_by_source.items()
+            ))
 
             print(f"[{new_jobs_count}] NEW SENT" if new_jobs_count > 0 else "No new jobs found.")
             if new_jobs_count > 0:
@@ -135,14 +155,6 @@ class Scraper(commands.Cog):
             del swissdevjobs_results
             del swissas_results
             del jetaviation_results
-                    sent_by_source[job['source']] = sent_by_source.get(job['source'], 0) + 1
-
-            # One print (= one Discord log message) for all sources, same format as the FOUND lines.
-            current_time = datetime.now(PARIS_TZ).strftime("%Y-%m-%d %H:%M:%S")
-            print("\n".join(
-                f"[{current_time}] - [{count}] SENT from {source}."
-                for source, count in sent_by_source.items()
-            ))
             del all_jobs
             gc.collect()
 
