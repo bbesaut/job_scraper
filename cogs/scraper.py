@@ -22,6 +22,12 @@ PROD_LOGS_CHANNEL_ID = 1517559558938034266
 
 PARIS_TZ = ZoneInfo("Europe/Paris")
 
+# Every `source` value the scrapers emit, so a source with nothing sent still shows up as 0.
+SOURCES = (
+    "jobs.ch", "jobup.ch", "jobscout24.ch", "jobbasel.ch",
+    "swissdevjobs.ch", "swissas.teamtailor.com", "jobs.jetaviation.com",
+)
+
 class ParisFormatter(logging.Formatter):
     def formatTime(self, record, datefmt=None):
         dt = datetime.fromtimestamp(record.created, tz=PARIS_TZ)
@@ -114,6 +120,7 @@ class Scraper(commands.Cog):
 
 
                     await target_channel.send(content=f"@here 🚨 **NOUVELLE OFFRE ({job['source']})**", embed=embed)
+            sent_by_source = {source: 0 for source in SOURCES}
                     self.sent_jobs.add(job['url'])
                     new_jobs_count += 1
 
@@ -128,6 +135,14 @@ class Scraper(commands.Cog):
             del swissdevjobs_results
             del swissas_results
             del jetaviation_results
+                    sent_by_source[job['source']] = sent_by_source.get(job['source'], 0) + 1
+
+            # One print (= one Discord log message) for all sources, same format as the FOUND lines.
+            current_time = datetime.now(PARIS_TZ).strftime("%Y-%m-%d %H:%M:%S")
+            print("\n".join(
+                f"[{current_time}] - [{count}] SENT from {source}."
+                for source, count in sent_by_source.items()
+            ))
             del all_jobs
             gc.collect()
 
