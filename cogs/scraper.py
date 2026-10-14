@@ -98,7 +98,7 @@ class Scraper(commands.Cog):
         except Exception as e:
             print(f"Error saving memory: {e}")
 
-    @tasks.loop(minutes=15)
+    @tasks.loop(hours=2)
     async def scraping_loop_task(self):
         self.discord_handler.loop = asyncio.get_event_loop()
         target_channel_id = PROD_CHANNEL_ID if self.env == "PROD" else DEV_CHANNEL_ID
