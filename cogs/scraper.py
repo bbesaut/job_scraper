@@ -13,6 +13,7 @@ from scrapers.jobscout24_ch import scrape_jobscout24_ch
 from scrapers.jobbasel_ch import scrape_jobbasel_ch
 from scrapers.swissas_teamtailor import scrape_swissas_teamtailor
 from scrapers.jetaviation import scrape_jetaviation
+from scrapers.amacaerospace import scrape_amacaerospace
 
 DEV_CHANNEL_ID = 1516481386998009876
 DEV_LOGS_CHANNEL_ID = 1517559887754694838
@@ -24,7 +25,7 @@ PARIS_TZ = ZoneInfo("Europe/Paris")
 # Every `source` value the scrapers emit, so a source with nothing sent still shows up as 0.
 SOURCES = (
     "jobs.ch", "jobup.ch", "jobscout24.ch", "jobbasel.ch",
-    "swissas.teamtailor.com", "jobs.jetaviation.com",
+    "swissas.teamtailor.com", "jobs.jetaviation.com", "amacaerospace.com",
 )
 
 class ParisFormatter(logging.Formatter):
@@ -110,10 +111,12 @@ class Scraper(commands.Cog):
             jobbasel_ch_results = await asyncio.to_thread(scrape_jobbasel_ch)
             swissas_results = await asyncio.to_thread(scrape_swissas_teamtailor)
             jetaviation_results = await asyncio.to_thread(scrape_jetaviation)
+            amacaerospace_results = await asyncio.to_thread(scrape_amacaerospace)
 
             all_jobs = (
                 (jobs_ch_results or []) + (jobup_ch_results or []) + (jobscout24_ch_results or [])
                 + (jobbasel_ch_results or []) + (swissas_results or []) + (jetaviation_results or [])
+                + (amacaerospace_results or [])
             )
 
             new_jobs_count = 0
@@ -151,6 +154,7 @@ class Scraper(commands.Cog):
             del jobbasel_ch_results
             del swissas_results
             del jetaviation_results
+            del amacaerospace_results
             del all_jobs
             gc.collect()
 
