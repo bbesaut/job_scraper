@@ -27,10 +27,6 @@ WORKLOAD_SINGLE = re.compile(r'(\d{2,3})\s*%')
 # Everything after this heading is generic employer boilerplate (holidays, canteen, Christmas party...).
 OFFER_SECTION = re.compile(r'what we offer', re.IGNORECASE)
 
-# The titles are very short, so the greenflags run on the description. It never changes once
-# published, so it's fetched once per job and kept for the life of the process.
-_details_cache = {}
-
 
 def clean_text(raw: str) -> str:
     return " ".join(raw.split())
@@ -65,9 +61,7 @@ def fetch_listing(session: requests.Session) -> list:
 
 
 def fetch_details(session: requests.Session, url: str) -> str:
-    if url in _details_cache:
-        return _details_cache[url]
-
+    """The titles are very short, so the greenflags run on the description from the detail page."""
     response = session.get(url, headers=HEADERS, timeout=20)
     response.raise_for_status()
     tree = lxml_html.fromstring(response.content)
@@ -76,7 +70,6 @@ def fetch_details(session: requests.Session, url: str) -> str:
     text = clean_text(blocks[0].text_content()) if blocks else ""
     text = OFFER_SECTION.split(text, maxsplit=1)[0].strip()
 
-    _details_cache[url] = text
     time.sleep(DETAIL_DELAY_SECONDS)
     return text
 
